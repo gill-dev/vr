@@ -17,7 +17,7 @@ const ARContent: React.FC = () => {
   const { isPresenting, enterAR, exitAR } = useXR();
 
   useEffect(() => {
-    new THREE.TextureLoader().load('/images/artwork.png', (texture) => {
+    new THREE.TextureLoader().load('/images/image.png', (texture) => {
       setArtworkTexture(texture);
     });
   }, []);
