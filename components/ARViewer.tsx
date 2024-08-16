@@ -1,4 +1,3 @@
-'use client'
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
@@ -12,12 +11,13 @@ const ARViewer: React.FC<ARViewerProps> = ({ imageUrl }) => {
   useEffect(() => {
     if (!containerRef.current) return;
 
+    const container = containerRef.current;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     
     renderer.setSize(window.innerWidth, window.innerHeight);
-    containerRef.current.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
     // Load the image and create a plane with the correct aspect ratio
     const loader = new THREE.TextureLoader();
@@ -80,8 +80,8 @@ const ARViewer: React.FC<ARViewerProps> = ({ imageUrl }) => {
     document.body.appendChild(arButton);
 
     return () => {
-      if (containerRef.current) {
-        containerRef.current.removeChild(renderer.domElement);
+      if (container) {
+        container.removeChild(renderer.domElement);
       }
       document.body.removeChild(arButton);
       renderer.setAnimationLoop(null);
