@@ -23,7 +23,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_BASE_PATH: /{repo-name}
+          NEXT_PUBLIC_BASE_PATH: /{vr}
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.4
