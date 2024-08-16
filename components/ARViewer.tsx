@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { XR, useXR, useXRHitTest, createXRStore } from '@react-three/xr';
+import { XR, useXR, useXRHitTest, createXRStore, GetWorldMatrixFromXRHitTest } from '@react-three/xr';
 import * as THREE from 'three';
 
 const xrStore = createXRStore();
@@ -17,17 +17,17 @@ const ARContent: React.FC = () => {
   const { isPresenting, enterAR, exitAR } = useXR();
 
   useEffect(() => {
-    new THREE.TextureLoader().load('/images/image.png', (texture) => {
+    new THREE.TextureLoader().load('/images/artwork.png', (texture) => {
       setArtworkTexture(texture);
     });
   }, []);
 
-  useXRHitTest((hitTestResults) => {
+  useXRHitTest((hitTestResults, getWorldMatrix: GetWorldMatrixFromXRHitTest) => {
     if (placement || hitTestResults.length === 0) return;
     
     const hitTestResult = hitTestResults[0];
     const hitMatrix = new THREE.Matrix4();
-    hitMatrix.fromArray(hitTestResult.getPose(hitTestRef.current!.parent as THREE.XRReferenceSpace)!.transform.matrix);
+    getWorldMatrix(hitMatrix, hitTestResult);
     
     const position = new THREE.Vector3();
     position.setFromMatrixPosition(hitMatrix);
