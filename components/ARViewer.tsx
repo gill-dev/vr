@@ -1,3 +1,4 @@
+'use client'
 import React, { useState, useCallback, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { XR, useXR, useXRHitTest, createXRStore } from '@react-three/xr';
