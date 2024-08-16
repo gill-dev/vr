@@ -1,95 +1,74 @@
 'use client'
-import React, { useEffect, useRef } from 'react';
-import * as THREE from 'three';
 
-interface ARViewerProps {
-  imageUrl: string;
+import { Canvas, useThree, useFrame } from '@react-three/fiber'
+import { XR, useXR, useXREvent } from '@react-three/xr'
+import { useState, useRef, useCallback } from 'react'
+import { TextureLoader, Texture, Group } from 'three'
+import { createXRStore } from '@react-three/xr'
+
+interface ARImageProps {
+  url: string;
 }
 
-const ARViewer: React.FC<ARViewerProps> = ({ imageUrl }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+function ARImage({ url }: ARImageProps) {
+  const texture = useRef<Texture | null>(null)
+  const [hovered, setHovered] = useState(false)
+  const { isPresenting } = useXR()
 
-  useEffect(() => {
-    if (!containerRef.current) return;
+  useFrame(() => {
+    if (texture.current) {
+      texture.current.needsUpdate = true
+    }
+  })
 
-    const container = containerRef.current;
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    container.appendChild(renderer.domElement);
+  const handleSelect = useCallback(() => console.log('Image selected'), [])
+  useXREvent('select', handleSelect)
 
-    // Load the image and create a plane with the correct aspect ratio
-    const loader = new THREE.TextureLoader();
-    loader.load(imageUrl, (texture) => {
-      const aspect = texture.image.width / texture.image.height;
-      const geometry = new THREE.PlaneGeometry(1, 1 / aspect);
-      const material = new THREE.MeshBasicMaterial({ map: texture });
-      const imagePlane = new THREE.Mesh(geometry, material);
-      scene.add(imagePlane);
+  return (
+    <group
+      onPointerOver={() => setHovered(true)}
+      onPointerOut={() => setHovered(false)}
+    >
+      <mesh scale={hovered ? [1.2, 1.2, 1.2] : [1, 1, 1]}>
+        <planeGeometry args={[1, 1]} />
+        <meshBasicMaterial>
+          <primitive attach="map" object={new TextureLoader().load(url)} ref={texture} />
+        </meshBasicMaterial>
+      </mesh>
+    </group>
+  )
+}
 
-      // Position the plane in front of the camera
-      imagePlane.position.z = -2;
-      camera.position.z = 0;
-    });
+function Scene() {
+  const { camera } = useThree()
+  
+  useFrame(() => {
+    // You can add any per-frame updates here
+  })
 
-    const animate = () => {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    };
-    animate();
+  return (
+    <>
+      <ARImage url="/images/image.png" />
+      <ambientLight intensity={0.5} />
+      <pointLight position={[10, 10, 10]} />
+    </>
+  )
+}
 
-    // WebXR setup
-    renderer.xr.enabled = true;
-    
-    const arButton = document.createElement('button');
-    arButton.textContent = 'Start AR';
-    arButton.style.position = 'absolute';
-    arButton.style.bottom = '20px';
-    arButton.style.left = '50%';
-    arButton.style.transform = 'translateX(-50%)';
-    arButton.style.padding = '12px 24px';
-    arButton.style.backgroundColor = '#4CAF50';
-    arButton.style.color = 'white';
-    arButton.style.border = 'none';
-    arButton.style.borderRadius = '4px';
-    arButton.style.cursor = 'pointer';
+// Create an XR store (Place this outside of your component)
+const xrStore = createXRStore()
 
-    arButton.onclick = async () => {
-      if (navigator.xr) {
-        try {
-          const session = await navigator.xr.requestSession('immersive-ar', {
-            requiredFeatures: ['hit-test']
-          });
-          renderer.xr.setSession(session);
-          renderer.setAnimationLoop(() => {
-            renderer.render(scene, camera);
-          });
-          arButton.style.display = 'none';
-        } catch (error) {
-          console.error('Error starting AR session:', error);
-          arButton.textContent = 'AR not available';
-          arButton.disabled = true;
-        }
-      } else {
-        console.warn('WebXR not supported');
-        arButton.textContent = 'AR not supported';
-        arButton.disabled = true;
-      }
-    };
-    document.body.appendChild(arButton);
+export default function ARViewer() {
+  const enterAR = useCallback(() => xrStore.enterAR(), [])
 
-    return () => {
-      if (container) {
-        container.removeChild(renderer.domElement);
-      }
-      document.body.removeChild(arButton);
-      renderer.setAnimationLoop(null);
-    };
-  }, [imageUrl]);
-
-  return <div ref={containerRef} style={{ width: '100%', height: '100vh' }} />;
-};
-
-export default ARViewer;
+  return (
+    <>
+      <button onClick={enterAR}>Enter AR</button>
+      <Canvas>
+        <XR store={xrStore}>
+          <Scene />
+        </XR>
+      </Canvas>
+    </>
+  )
+}
