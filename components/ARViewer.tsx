@@ -1,3 +1,4 @@
+'use client'
 import React, { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 
@@ -14,6 +15,7 @@ interface ModelViewerProps extends React.HTMLAttributes<HTMLElement> {
   'skybox-height'?: string;
   'max-camera-orbit'?: string;
   'xr-environment'?: boolean;
+  'placement'?: string;
 }
 
 declare global {
@@ -86,6 +88,7 @@ const ARFurniturePlacement: React.FC = () => {
             skybox-height="2m"
             max-camera-orbit="auto 90deg auto"
             xr-environment
+            placement="wall"
           >
             <button slot="ar-button" style={{backgroundColor: 'white', borderRadius: '4px', border: 'none', position: 'absolute', top: '16px', right: '16px', height: '40px', width: '40px'}}>
               👋 Activate AR
